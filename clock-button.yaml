@@ -1,0 +1,100 @@
+title: "Reloj"
+path: "clock"
+type: panel
+badges: []
+cards:
+  - type: custom:button-card
+    entity: sensor.time
+    show_icon: false
+    show_name: false
+    show_state: false
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    triggers_update:
+      - sensor.time
+      - sensor.date
+      - weather.forecast_home
+      - image.bing_wallpaper_picture_bing_wallpaper
+      - input_boolean.modo_noche
+    custom_fields:
+      weather:
+        card:
+          type: custom:button-card
+          icon: mdi:weather-sunny
+          name: "[[[ return (states['weather.forecast_home']?.attributes?.temperature ?? '') + '°'; ]]]"
+          show_name: true
+          show_state: false
+          tap_action:
+            action: none
+          hold_action:
+            action: none
+          double_tap_action:
+            action: none
+          styles:
+            card:
+              - background: transparent
+              - border: 0
+              - box-shadow: none
+            grid:
+              - grid-template-areas: '"i n"'
+              - grid-template-columns: min-content min-content
+              - column-gap: 1vw
+            icon:
+              - width: 12vh
+              - color: white
+            name:
+              - font-size: 8vh
+              - color: white
+      time: "[[[ return states['sensor.time'].state; ]]]"
+      date: "[[[ return states['sensor.date'].state; ]]]"
+    styles:
+      card:
+        - height: 100vh
+        - min-height: 100vh
+        - width: 100vw
+        - max-width: none
+        - margin-left: 0
+        - box-sizing: border-box
+        - padding: 0
+        - border: 0
+        - border-radius: 0
+        - overflow: hidden
+        - background: "[[[ const u = states['image.bing_wallpaper_picture_bing_wallpaper']?.attributes?.entity_picture; return u ? `linear-gradient(rgba(3,5,10,.42),rgba(3,5,10,.68)),center / cover no-repeat url('${u}')` : 'linear-gradient(145deg,#17202a,#030507)'; ]]]"
+        - color: white
+      grid:
+        - grid-template-areas: '"weather weather" "time time" "date date"'
+        - grid-template-rows: 18vh 60vh 18vh
+        - grid-template-columns: 1fr 1fr
+        - align-items: center
+      custom_fields:
+        weather:
+          - justify-self: start
+          - align-self: start
+          - margin-left: 4vw
+          - margin-top: 2vh
+          - z-index: 2
+        time:
+          - justify-self: center
+          - align-self: center
+          - z-index: 1
+          - font-size: 46vh
+          - font-weight: 700
+          - line-height: 0.9
+          - letter-spacing: 0.02em
+          - color: white
+          - text-shadow: 0 0 3vh rgba(0,0,0,0.75)
+        date:
+          - justify-self: center
+          - align-self: start
+          - z-index: 1
+          - width: 100%
+          - font-size: 7.5vh
+          - font-weight: 300
+          - color: white
+          - white-space: nowrap
+          - text-align: center
+          - text-shadow: 0 0 2vh rgba(0,0,0,0.75)
