@@ -1,0 +1,15 @@
+template:
+  - sensor:
+      - name: "Time"
+        unique_id: standalone_clock_time
+        state: "{{ now().strftime('%H:%M') }}"
+
+      - name: "Date"
+        unique_id: standalone_clock_date
+        state: >-
+          {{ ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"][now().weekday()] }}, {{ now().day }} de {{ ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"][now().month - 1] }}
+
+input_boolean:
+  modo_noche:
+    name: "Modo noche"
+    icon: mdi:weather-night
