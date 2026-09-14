@@ -21,9 +21,17 @@ Fullscreen clock dashboard with a daily Bing Wallpaper background.
 ## Installation
 
 1. Install the dependencies through HACS.
-2. Copy `packages/clock.yaml` to `/config/packages/`.
-3. Add this to `configuration.yaml`:
-
+2. Add this template sensors to `configuration.yml`:
    ```yaml
-   homeassistant:
-     packages: !include_dir_named packages
+    template:
+      - sensor:
+          - name: "Time"
+            unique_id: standalone_clock_time
+            state: "{{ now().strftime('%H:%M') }}"
+          - name: "Date"
+            unique_id: standalone_clock_date
+            state: >-
+              {{ ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"][now().weekday()] }}, {{ now().day }} de {{ ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"][now().month - 1] }}
+
+   ```
+4. Add the view in the raw editor of the view.
