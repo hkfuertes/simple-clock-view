@@ -2,6 +2,8 @@
 
 Fullscreen clock dashboard with a daily Bing Wallpaper background.
 
+![Example](Echo-Show-5.jpg)
+
 ## Requirements
 
 - Home Assistant 2026.x or newer.
@@ -22,6 +24,7 @@ Fullscreen clock dashboard with a daily Bing Wallpaper background.
 
 1. Install the dependencies through HACS.
 2. Add this template sensors to `configuration.yml`:
+
    ```yaml
     template:
       - sensor:
