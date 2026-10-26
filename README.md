@@ -49,9 +49,8 @@ device entity prefix:
 ```
 
 The clock uses that path segment to control:
-
-• switch.salon_echo_show_5_vs_mute
-• assist_satellite.salon_echo_show_5_assist_satellite
+- `switch.salon_echo_show_5_vs_mute`
+- `assist_satellite.salon_echo_show_5_assist_satellite`
 
 A short tap starts Assist when the microphone is not muted. A long press toggles
 the microphone mute state. The microphone icon is always white.
