@@ -38,19 +38,3 @@ Fullscreen clock dashboard with a daily Bing Wallpaper background.
 
    ```
 4. Add the view in the raw editor of the view.
-
-### Voice Satellite support
-
-Create one clock view per Kiosk Satellite device. The view path must match the
-device entity prefix:
-
-```text
-/reloj-noche/salon_echo_show_5
-```
-
-The clock uses that path segment to control:
-- `switch.salon_echo_show_5_vs_mute`
-- `assist_satellite.salon_echo_show_5_assist_satellite`
-
-A short tap starts Assist when the microphone is not muted. A long press toggles
-the microphone mute state. The microphone icon is always white.
