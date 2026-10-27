@@ -5,11 +5,26 @@ views:
           date: '[[[ return states[''sensor.date''].state; ]]]'
           mute: |-
             [[[
-              const prefix = variables.display_prefix;
-              if (!prefix) return '';
-              const muted = states[`switch.${prefix}_vs_mute`]?.state === 'on';
-              const icon = muted ? 'mdi:microphone-off' : 'mdi:microphone';
-              return `<ha-icon icon="${icon}" style="width:7vh;height:7vh;color:white;"></ha-icon>`;
+              const ks = window.kioskSatellite;
+              if (ks?.platform !== 'kiosksatellite') return '';
+
+              const now = Date.now();
+              const cached = this._ksWakeWordState;
+              if (!cached?.pending && (!cached?.checkedAt || now - cached.checkedAt >= 3000)) {
+                this._ksWakeWordState = { ...cached, pending: true, checkedAt: now };
+                ks.getWakeWordState().then((state) => {
+                  this._ksWakeWordState = { state, pending: false, checkedAt: Date.now() };
+                  this.requestUpdate();
+                }).catch(() => {
+                  this._ksWakeWordState = { state: null, pending: false, checkedAt: Date.now() };
+                  this.requestUpdate();
+                });
+              }
+
+              const state = this._ksWakeWordState?.state;
+              if (!state) return '';
+              const icon = state.muted ? 'mdi:microphone-off' : 'mdi:microphone';
+              return `<ha-icon icon="${icon}" style="width:7vh;height:7vh;color:white;" title="${state.statusLabel || ''}"></ha-icon>`;
             ]]]
           time: '[[[ return states[''sensor.time''].state; ]]]'
           weather:
@@ -45,20 +60,12 @@ views:
               type: custom:button-card
         double_tap_action:
           action: none
-        entity: sensor.time
-        hold_action:
-          action: javascript
-          javascript: |-
-            [[[
-              const prefix = variables.display_prefix;
-              if (prefix) {
-                helpers.runAction({
-                  action: 'perform-action',
-                  perform_action: 'switch.toggle',
-                  target: { entity_id: `switch.${prefix}_vs_mute` }
-                });
-              }
-            ]]]
+        hold_action: |-
+          [[[
+            return window.kioskSatellite?.platform === 'kiosksatellite'
+              ? { action: 'url', url_path: 'ks://voice/mute' }
+              : { action: 'none' };
+          ]]]
         show_icon: false
         show_name: false
         show_state: false
@@ -122,173 +129,16 @@ views:
             - grid-template-rows: 18vh 60vh 18vh
             - grid-template-columns: 1fr 1fr
             - align-items: center
-        tap_action:
-          action: javascript
-          javascript: |-
-            [[[
-              const prefix = variables.display_prefix;
-              const muteEntity = prefix && `switch.${prefix}_vs_mute`;
-              if (muteEntity && states[muteEntity]?.state !== 'on') {
-                helpers.runAction({
-                  action: 'perform-action',
-                  perform_action: 'assist_satellite.start_conversation',
-                  target: { entity_id: `assist_satellite.${prefix}_assist_satellite` }
-                });
-              }
-            ]]]
+        tap_action: |-
+          [[[
+            const ks = window.kioskSatellite;
+            const state = this._ksWakeWordState?.state;
+            if (ks?.platform !== 'kiosksatellite' || !state || state.muted) return { action: 'none' };
+            return { action: 'url', url_path: 'ks://voice' };
+          ]]]
         triggers_update: all
         type: custom:button-card
-        variables:
-          display_prefix: >-
-            [[[ return new
-            URLSearchParams(window.location.search).get('display') || ''; ]]]
+        update_timer: 3s
     path: clock
     title: Clock
-    type: panel
-  - badges: []
-    cards:
-      - custom_fields:
-          date: '[[[ return states[''sensor.date''].state; ]]]'
-          mute: |-
-            [[[
-              const prefix = variables.display_prefix;
-              if (!prefix) return '';
-              const muted = states[`switch.${prefix}_vs_mute`]?.state === 'on';
-              const icon = muted ? 'mdi:microphone-off' : 'mdi:microphone';
-              return `<ha-icon icon="${icon}" style="width:7vh;height:7vh;color:white;"></ha-icon>`;
-            ]]]
-          time: '[[[ return states[''sensor.time''].state; ]]]'
-          weather:
-            card:
-              double_tap_action:
-                action: none
-              hold_action:
-                action: none
-              icon: mdi:weather-sunny
-              name: >-
-                [[[ return
-                (states['weather.forecast_home']?.attributes?.temperature ?? '')
-                + '°'; ]]]
-              show_name: true
-              show_state: false
-              styles:
-                card:
-                  - background: transparent
-                  - border: 0
-                  - box-shadow: none
-                grid:
-                  - grid-template-areas: '"i n"'
-                  - grid-template-columns: min-content min-content
-                  - column-gap: 1vw
-                icon:
-                  - width: 15vh
-                  - color: white
-                name:
-                  - font-size: 11vh
-                  - color: white
-              tap_action:
-                action: none
-              type: custom:button-card
-        double_tap_action:
-          action: none
-        entity: sensor.time
-        hold_action:
-          action: javascript
-          javascript: |-
-            [[[
-              const prefix = variables.display_prefix;
-              if (prefix) {
-                helpers.runAction({
-                  action: 'perform-action',
-                  perform_action: 'switch.toggle',
-                  target: { entity_id: `switch.${prefix}_vs_mute` }
-                });
-              }
-            ]]]
-        show_icon: false
-        show_name: false
-        show_state: false
-        styles:
-          card:
-            - height: 100vh
-            - min-height: 100vh
-            - width: 100vw
-            - max-width: none
-            - margin-left: 0
-            - box-sizing: border-box
-            - padding: 0
-            - border: 0
-            - border-radius: 0
-            - overflow: hidden
-            - background: >-
-                [[[ const u =
-                states['image.bing_wallpaper_picture_bing_wallpaper']?.attributes?.entity_picture;
-                return u ?
-                `linear-gradient(rgba(3,5,10,.42),rgba(3,5,10,.68)),center /
-                cover no-repeat url('${u}')` :
-                'linear-gradient(145deg,#17202a,#030507)'; ]]]
-            - color: white
-          custom_fields:
-            date:
-              - justify-self: center
-              - align-self: start
-              - z-index: 1
-              - width: 100%
-              - font-size: 11vh
-              - font-weight: 700
-              - color: white
-              - white-space: nowrap
-              - text-align: center
-              - text-shadow: 0 0 2vh rgba(0,0,0,0.75)
-            mute:
-              - grid-area: mute
-              - justify-self: end
-              - align-self: start
-              - margin-right: 4vw
-              - margin-top: 4vh
-              - z-index: 2
-            time:
-              - justify-self: center
-              - align-self: center
-              - z-index: 1
-              - font-size: 50vh
-              - font-weight: 700
-              - line-height: 0.9
-              - letter-spacing: 0.02em
-              - color: white
-              - text-shadow: 0 0 3vh rgba(0,0,0,0.75)
-            weather:
-              - justify-self: start
-              - align-self: start
-              - margin-left: 4vw
-              - margin-top: 2vh
-              - z-index: 2
-          grid:
-            - grid-template-areas: '"weather mute" "time time" "date date"'
-            - grid-template-rows: 18vh 60vh 18vh
-            - grid-template-columns: 1fr 1fr
-            - align-items: center
-        tap_action:
-          action: javascript
-          javascript: |-
-            [[[
-              const prefix = variables.display_prefix;
-              const muteEntity = prefix && `switch.${prefix}_vs_mute`;
-              if (muteEntity && states[muteEntity]?.state !== 'on') {
-                helpers.runAction({
-                  action: 'perform-action',
-                  perform_action: 'assist_satellite.start_conversation',
-                  target: { entity_id: `assist_satellite.${prefix}_assist_satellite` }
-                });
-              }
-            ]]]
-        triggers_update: all
-        type: custom:button-card
-        variables:
-          display_prefix: >-
-            [[[ return
-            window.location.pathname.split('/').filter(Boolean).at(-1) || '';
-            ]]]
-    path: salon_echo_show_5
-    title: Clock Echo Show 5
     type: panel
